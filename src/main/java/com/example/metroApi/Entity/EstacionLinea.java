@@ -25,7 +25,7 @@ public class EstacionLinea {
     @Column(name = "gtfs_id", nullable = false, updatable = false)
     private String gtfsId;
 
-    @ManyToOne
+    @ManyToOne  
     @JoinColumn(name = "linea_id")
     private Linea linea;
     private int orderNumber;

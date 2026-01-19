@@ -1,12 +1,15 @@
 package com.example.metroApi.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.example.metroApi.Dto.LineaDto;
 import com.example.metroApi.Entity.Estacion;
 import com.example.metroApi.Entity.EstacionLinea;
 
@@ -30,4 +33,18 @@ public interface EstacionLineaRepository extends JpaRepository<EstacionLinea, Lo
         nativeQuery= true
     )
     void poblarEstacionLinea();
+
+
+    @Query("""
+        SELECT DISTINCT new com.example.metroApi.Dto.LineaDto(
+            el.linea.id,
+            el.linea.nombre,
+            el.linea.activo,
+            el.estacion.nombre
+        )
+        FROM EstacionLinea el
+        WHERE el.estacion.id = :estacionId
+        ORDER BY el.linea.nombre
+    """)
+    List<LineaDto> findLineasPorEstacion(@Param("estacionId") Long estacionId);
 }

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class MetroController {
-    @GetMapping("/metro/estaciones/{id}/")
+    @GetMapping("/metro/estaciones/{nombre}/horarios")
     public String getMethodName(@RequestParam String param) {
         return new String();
     }
