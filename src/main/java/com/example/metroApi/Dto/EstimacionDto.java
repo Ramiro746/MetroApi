@@ -13,6 +13,9 @@ public class EstimacionDto {
     private Long lineaId;
     private String lineaNombre;
 
+    private Integer direccionId;
+    private String direccionNombre;
+
     private Integer proximoTrenMin;   // minutos hasta que llegue
     private Integer frecuenciaMin;    // cada cuantos minutos pasa
 

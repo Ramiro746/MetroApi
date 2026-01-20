@@ -122,7 +122,12 @@ public class EstacionService {
         int frecuencia = calcularFrecuencia(lineaId, ahora);
         
         //Simulamos espera
-        int minutosHastaProximo = new Random().nextInt(frecuencia) + 1;
+        int ahoraMin = ahora.getHour() * 60 + ahora.getMinute();
+        int minutosHastaProximo = frecuencia - (ahoraMin % frecuencia);
+
+        if(minutosHastaProximo == frecuencia){
+            minutosHastaProximo = 0;
+        }
 
         return EstimacionDto.builder()
             .estacionId(estacion.getId())
