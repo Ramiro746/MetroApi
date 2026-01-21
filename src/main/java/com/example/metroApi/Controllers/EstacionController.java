@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.example.metroApi.Service.EstacionService;
 
 import com.example.metroApi.Dto.EstacionDto;
-import com.example.metroApi.Dto.EstimacionDto;
+import com.example.metroApi.Dto.EstimacionLineaDto;
 import com.example.metroApi.Dto.HorarioDto;
 import com.example.metroApi.Dto.LineaDto;
 
@@ -61,7 +61,7 @@ public class EstacionController {
     }
 
     @GetMapping("/{id}/lineas/{lineaId}/estimacion")
-    public EstimacionDto estimarProximoTren(@PathVariable Long id, @PathVariable Long lineaId){
+    public EstimacionLineaDto estimarProximoTren(@PathVariable Long id, @PathVariable Long lineaId){
         return estacionService.estimarProximoTren(id, lineaId);
     }
 }

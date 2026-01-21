@@ -5,13 +5,8 @@ import lombok.Data;
 
 @Data
 @Builder
-public class EstimacionDto {
+public class EstimacionDireccionDto {
 
-    private Long estacionId;
-    private String estacionNombre;
-
-    private Long lineaId;
-    private String lineaNombre;
 
     private Integer direccionId;
     private String direccionNombre;
@@ -19,7 +14,4 @@ public class EstimacionDto {
     private Integer proximoTrenMin;   // minutos hasta que llegue
     private Integer frecuenciaMin;    // cada cuantos minutos pasa
 
-    private boolean estimado;          // true siempre (por ahora)
-
-    private String horaConsulta;
 }
