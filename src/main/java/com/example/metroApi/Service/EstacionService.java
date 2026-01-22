@@ -17,6 +17,7 @@ import com.example.metroApi.Repository.EstacionLineaRepository;
 import com.example.metroApi.Repository.StopTimeRepository;
 import com.example.metroApi.Repository.ServicioCalendarioRepository;
 import com.example.metroApi.Repository.TripRepository;
+import com.example.metroApi.Repository.FrecuenciaRepository;
 
 
 import com.example.metroApi.Entity.ServicioCalendario;
@@ -35,6 +36,7 @@ import com.example.metroApi.Dto.EstimacionDireccionDto;
 
 import com.example.metroApi.Entity.Estacion;
 import com.example.metroApi.Entity.Linea;
+import com.example.metroApi.Entity.Frecuencia;
 
 
 @Service
@@ -53,14 +55,17 @@ public class EstacionService {
     
     private final TripRepository tripRepository;
 
+    private final FrecuenciaRepository frecuenciaRepository;
 
-    public EstacionService(EstacionRepository estacionRepository, EstacionLineaRepository estacionLineaRepository, StopTimeRepository stopTimeRepository,ServicioCalendarioRepository servicioCalendarioRepository, TripRepository tripRepository, LineaRepository lineaRepository){
+
+    public EstacionService(EstacionRepository estacionRepository, EstacionLineaRepository estacionLineaRepository, StopTimeRepository stopTimeRepository,ServicioCalendarioRepository servicioCalendarioRepository, TripRepository tripRepository, LineaRepository lineaRepository, FrecuenciaRepository frecuenciaRepository){
         this.estacionRepository = estacionRepository;
         this.estacionLineaRepository = estacionLineaRepository;
         this.stopTimeRepository = stopTimeRepository;
         this.servicioCalendarioRepository = servicioCalendarioRepository;
         this.tripRepository = tripRepository;
         this.lineaRepository = lineaRepository;
+        this.frecuenciaRepository = frecuenciaRepository;
     }
 
     public List<EstacionDto> listarEstaciones(){
@@ -123,22 +128,44 @@ public class EstacionService {
         LocalTime ahora = LocalTime.now();
         //int frecuencia = calcularFrecuencia(lineaId, ahora);
         
+
+        LocalDate hoy = LocalDate.now();
+
+        
         DayOfWeek dia = LocalDate.now().getDayOfWeek();
         //Simulamos espera
         int ahoraMin = ahora.getHour() * 60 + ahora.getMinute();
         //int minutosHastaProximo = frecuencia - (ahoraMin % frecuencia);
 
+
+        List<ServicioCalendario> servicios = servicioCalendarioRepository
+            .findServiciosActivosHoy(hoy, dia.name());
+
+        
+        if(servicios.isEmpty()){
+            throw new RuntimeException("No hay servicio activo hoy");
+        }
+
+        ServicioCalendario servicio = servicios.get(0); 
+
         List<EstimacionDireccionDto> estimaciones = new ArrayList<>();
 
         for(int direccionId = 0; direccionId <=1; direccionId++){
+
+            {/*
             int frecuencia = calcularFrecuencia(lineaId, ahora, direccionId, dia);
             int minutosHastaProximo = frecuencia - (ahoraMin % frecuencia);
+                 */}
 
             //if(minutosHastaProximo == frecuencia) minutosHastaProximo = 0; SI DEJO ESTO LUEGO DIRA QUE EL TREN ESTA LLEGANDO AHORA MISMO osea 0 minutos
 
+            
+            int frecuencia = calcularFrecuenciaReal(lineaId, direccionId, servicio, ahoraMin);
+            int minutosHastaProximo = frecuencia - (ahoraMin % frecuencia);
+
             if(minutosHastaProximo == 0){
                 minutosHastaProximo = frecuencia;
-            } //Si justo acaba de pasar un tren el siguiente llegara en "frecuencia" minutos no en 0, osea en el tiempo que nos diga la frecuencia. 
+            } //Si justo acaba de pasar un tren el siguiente llegara en "frecuencia" minutos no en 0, osea en el tiempo que nos diga la frecuencia.
 
             estimaciones.add(
                 EstimacionDireccionDto.builder()
@@ -181,5 +208,26 @@ public class EstacionService {
         }
         
         return 10; //noche
+    }
+
+    private int calcularFrecuenciaReal(Long lineaId, int direccionId, ServicioCalendario servicio, int horaMin){
+        return frecuenciaRepository
+            .findFrecuenciasActivas(lineaId, direccionId, servicio, horaMin)
+            .stream()
+            .findFirst()
+            .map(Frecuencia::getMinutos)
+            .orElse(6); //Fallback
+    }
+
+
+    private int calcularMinutosHastaProximo(Frecuencia f, int ahoraMin){
+        if(ahoraMin < f.getStartTime()){
+            return f.getStartTime() - ahoraMin;
+        }
+
+        int elapsed = ahoraMin - f.getStartTime();
+        int resto = elapsed % f.getMinutos();
+
+        return resto == 0 ? f.getMinutos() : f.getMinutos() - resto;
     }
 }
